@@ -13,6 +13,7 @@ import { FilesService } from '../services/files.service';
 import {
   FileUploadResponseDto,
   FileDownloadResponseDto,
+  FileDto,
 } from '../dtos/file.dto';
 import { CurrentUser } from '../modules/auth/decorators/current-user.decorator';
 import { ClerkUser } from '../modules/auth/strategies/clerk.strategy';
@@ -84,7 +85,7 @@ export class FilesController {
   async getFileMetadata(
     @Param('id') id: string,
     @CurrentUser() user: ClerkUser,
-  ): Promise<any> {
+  ): Promise<FileDto> {
     return this.filesService.getFileMetadata(id, user.id);
   }
 

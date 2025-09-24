@@ -10,7 +10,7 @@ export interface ClerkUser {
   profileImageUrl?: string;
 }
 
-interface JwtPayload {
+export interface JwtPayload {
   sub?: string;
   userId?: string;
   email?: string;
