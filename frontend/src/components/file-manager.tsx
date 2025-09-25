@@ -103,6 +103,8 @@ export function FileManager() {
           <CardContent className="space-y-5">
             <FileUpload
               onFileSelect={handleFileSelect}
+              selectedFile={selectedFile}
+              onClearFile={() => setSelectedFile(null)}
               disabled={!isSignedIn || uploadMutation.isPending}
             />
             
@@ -117,14 +119,6 @@ export function FileManager() {
                   </span>
                 </div>
                 <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSelectedFile(null)}
-                    disabled={uploadMutation.isPending}
-                  >
-                    Cancel
-                  </Button>
                   <Button
                     size="sm"
                     onClick={handleFileUpload}

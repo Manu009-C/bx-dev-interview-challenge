@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
@@ -9,17 +9,17 @@ import { cn } from "../lib/utils";
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
+  selectedFile?: File | null;
+  onClearFile?: () => void;
   disabled?: boolean;
 }
 
-export function FileUpload({ onFileSelect, disabled = false }: FileUploadProps) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+export function FileUpload({ onFileSelect, selectedFile, onClearFile, disabled = false }: FileUploadProps) {
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       if (acceptedFiles.length > 0) {
         const file = acceptedFiles[0];
-        setSelectedFile(file);
         onFileSelect(file);
       }
     },
@@ -46,13 +46,12 @@ export function FileUpload({ onFileSelect, disabled = false }: FileUploadProps) 
   const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
       onFileSelect(file);
     }
   };
 
   const clearFile = () => {
-    setSelectedFile(null);
+    onClearFile?.();
   };
 
   return (
