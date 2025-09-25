@@ -59,6 +59,17 @@ This will open Storybook at [http://localhost:6006](http://localhost:6006) where
 - Test different component states
 - View component documentation
 - Test accessibility features
+- **Switch themes**: Use the theme toggle in components or try the ThemeDemo story
+- **Test authentication**: See how components look with different auth states
+
+## Clerk Themes Integration
+
+The project uses `@clerk/themes` with the shadcn theme for consistent styling:
+
+- **shadcn Theme**: Imported via `@clerk/themes/shadcn.css` in global styles
+- **Custom Variables**: Overridden with our CSS custom properties for theme switching
+- **Consistent Design**: Clerk components match the shadcn/ui design system
+- **Theme Aware**: All Clerk components respect light/dark mode changes
 
 ## Styling
 
@@ -88,3 +99,54 @@ This will automatically:
 - Install the component and its dependencies
 - Add the component to your `src/components/ui` directory
 - Update your `components.json` configuration
+
+## Authentication Setup (Clerk)
+
+This app uses Clerk for authentication. To set it up:
+
+1. **Create a Clerk Account**:
+   - Go to [https://dashboard.clerk.com/](https://dashboard.clerk.com/)
+   - Sign up for a free account
+
+2. **Create a New Application**:
+   - Click "Add application"
+   - Choose "React" as the framework
+   - Name it "BonusX Challenge"
+
+3. **Get Your API Keys**:
+   - Copy the "Publishable key" (starts with `pk_test_`)
+   - Copy the "Secret key" (starts with `sk_test_`)
+
+4. **Create Environment File**:
+   ```bash
+   cp env.local.example .env.local
+   ```
+
+5. **Add Your Keys to `.env.local`**:
+   ```env
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your-actual-key-here
+   CLERK_SECRET_KEY=sk_test_your-actual-secret-key-here
+   ```
+
+6. **Configure Google-Only Authentication**:
+   - In your Clerk Dashboard, go to "User & Authentication" → "Social Connections"
+   - Enable only Google OAuth
+   - Disable email/password authentication
+   - Set up your Google OAuth credentials
+
+7. **Set Up Redirect URLs**:
+   - In Clerk Dashboard, go to "Paths"
+   - Set Sign-in URL: `http://localhost:3001/` (for development)
+   - Set Sign-up URL: `http://localhost:3001/` (for development)
+   - Set After sign-in URL: `http://localhost:3001/`
+   - Set After sign-up URL: `http://localhost:3001/`
+
+## Features
+
+- **Theme Switching**: Light/dark mode with system preference detection
+- **Authentication**: Sign in/out with Clerk (Google OAuth only)
+- **Clerk Themes**: Integrated with shadcn/ui design system for consistent styling
+- **Responsive Design**: Works on all devices
+- **Component Library**: Built with shadcn/ui and Tailwind CSS
+- **Storybook**: Component development and documentation
+- **TypeScript**: Full type safety

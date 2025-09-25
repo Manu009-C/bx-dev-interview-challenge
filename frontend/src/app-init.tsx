@@ -1,6 +1,9 @@
 import { Button } from "./components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./components/ui/card";
 import { Badge } from "./components/ui/badge";
+import { Header } from "./components/header";
+import { ThemeProvider } from "./providers/theme-provider";
+import { ClerkProviderWrapper } from "./providers/clerk-provider";
 import { useMemo } from "react";
 import { ExampleService } from "./services/example.service";
 
@@ -10,18 +13,15 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
-      <header className="bg-blue-600 text-white shadow-lg border-b-4 border-blue-700">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold">BonusX Interview Challenge</h1>
-            <Button variant="secondary" size="sm">
-              Login
-            </Button>
-          </div>
-        </div>
-      </header>
+    <ClerkProviderWrapper>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <div className="min-h-screen bg-background">
+          <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
@@ -119,7 +119,9 @@ function App() {
           </Card>
         </div>
       </main>
-    </div>
+        </div>
+      </ThemeProvider>
+    </ClerkProviderWrapper>
   );
 }
 
