@@ -1,9 +1,12 @@
 import { Button } from "./components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
 import { Badge } from "./components/ui/badge";
 import { Header } from "./components/header";
 import { ThemeProvider } from "./providers/theme-provider";
 import { ClerkProviderWrapper } from "./providers/clerk-provider";
+import { QueryProvider } from "./providers/query-provider";
+import { FileManager } from "./components/file-manager";
+import { Toaster } from "sonner";
 import { useMemo } from "react";
 import { ExampleService } from "./services/example.service";
 
@@ -28,92 +31,42 @@ function AppInit() {
           {/* Welcome Section */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-3xl">Benvenuto nell'applicazione</CardTitle>
+              <CardTitle className="text-3xl">File Management System</CardTitle>
               <CardDescription className="text-lg">
-                Questa è l'impostazione iniziale per l'app con Tailwind CSS e shadcn/ui
-                configurato correttamente.
+                Upload, manage, and organize your files with our secure file management system.
+                Sign in to access all features.
               </CardDescription>
             </CardHeader>
           </Card>
 
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Funzionalità 1</CardTitle>
-                <CardDescription>
-                  Descrizione della prima funzionalità
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Qui puoi aggiungere la tua prima funzionalità. Tailwind CSS e shadcn/ui
-                  sono ora configurati e funzionanti.
-                </p>
-              </CardContent>
-              <CardFooter>
-                <Button size="sm">Scopri di più</Button>
-              </CardFooter>
-            </Card>
+          {/* File Manager Component */}
+          <FileManager />
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Funzionalità 2</CardTitle>
-                <CardDescription>
-                  Descrizione della seconda funzionalità
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Qui puoi aggiungere la tua seconda funzionalità. Tutti i
-                  componenti shadcn/ui sono disponibili.
-                </p>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  size="sm"
-                  onClick={async () => {
-                    const { message } = await exampleService.getMessage();
-                    alert(message);
-                  }}
-                >
-                  Cliccami per fare una chiamata API
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
-
-          {/* Status Section */}
+          {/* Demo Section */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                Stato dell'applicazione
-                <Badge variant="secondary">Aggiornato</Badge>
+                Demo API Call
+                <Badge variant="secondary">Available</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-green-500">✅</span>
-                  <span>Tailwind CSS configurato correttamente</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-green-500">✅</span>
-                  <span>shadcn/ui componenti installati</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-green-500">✅</span>
-                  <span>Design system moderno</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-green-500">✅</span>
-                  <span>Layout responsivo</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-green-500">✅</span>
-                  <span>Componenti accessibili</span>
-                </div>
-              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Test the backend connection with this demo API call.
+              </p>
+              <Button
+                size="sm"
+                onClick={async () => {
+                  try {
+                    const { message } = await exampleService.getMessage();
+                    alert(message);
+                  } catch (error) {
+                    alert(`API Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  }
+                }}
+              >
+                Test Backend Connection
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -126,7 +79,10 @@ function AppInit() {
 function App() {
   return (
     <ClerkProviderWrapper>
-      <AppInit />
+      <QueryProvider>
+        <AppInit />
+        <Toaster position="top-right" />
+      </QueryProvider>
     </ClerkProviderWrapper>
   );
 }
