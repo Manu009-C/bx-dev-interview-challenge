@@ -35,6 +35,7 @@ describe('AppController', () => {
 
       appController.getHello();
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(Mapper.mapData).toHaveBeenCalledWith(
         MessageDto,
         resultFromService,
@@ -51,6 +52,29 @@ describe('AppController', () => {
       const result = appController.getHello();
 
       expect(result).toBe(expectedResult);
+    });
+  });
+
+  describe('getHealth', () => {
+    it('should return health status', () => {
+      const result = appController.getHealth();
+
+      expect(result).toEqual({
+        status: 'ok',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        timestamp: expect.any(String),
+        service: 'bonusx-file-uploader',
+      });
+    });
+
+    it('should return valid timestamp', () => {
+      const before = new Date();
+      const result = appController.getHealth();
+      const after = new Date();
+
+      const timestamp = new Date(result.timestamp);
+      expect(timestamp.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(timestamp.getTime()).toBeLessThanOrEqual(after.getTime());
     });
   });
 });
