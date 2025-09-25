@@ -7,14 +7,13 @@ import { ClerkProviderWrapper } from "./providers/clerk-provider";
 import { useMemo } from "react";
 import { ExampleService } from "./services/example.service";
 
-function App() {
+function AppInit() {
   const exampleService = useMemo(function initExampleService() {
     return new ExampleService();
   }, []);
 
   return (
-    <ClerkProviderWrapper>
-      <ThemeProvider
+    <ThemeProvider
         attribute="class"
         defaultTheme="system"
         enableSystem
@@ -121,6 +120,13 @@ function App() {
       </main>
         </div>
       </ThemeProvider>
+  );
+}
+
+function App() {
+  return (
+    <ClerkProviderWrapper>
+      <AppInit />
     </ClerkProviderWrapper>
   );
 }
