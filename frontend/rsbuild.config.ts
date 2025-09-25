@@ -3,6 +3,11 @@ import { pluginReact } from "@rsbuild/plugin-react";
 
 export default defineConfig({
   plugins: [pluginReact()],
+  resolve: {
+    alias: {
+      "@": "./src",
+    },
+  },
   source: {
     exclude: [
       /\.spec\.(tsx?|jsx?)$/,

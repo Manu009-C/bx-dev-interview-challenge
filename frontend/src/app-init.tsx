@@ -1,24 +1,6 @@
-import "@fontsource/roboto/300.css";
-import "@fontsource/roboto/400.css";
-import "@fontsource/roboto/500.css";
-import "@fontsource/roboto/700.css";
-import {
-  AppBar,
-  Box,
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  Container,
-  CssBaseline,
-  Paper,
-  StyledEngineProvider,
-  ThemeProvider,
-  Toolbar,
-  Typography,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
-import theme from "./theme";
+import { Button } from "./components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./components/ui/card";
+import { Badge } from "./components/ui/badge";
 import { useMemo } from "react";
 import { ExampleService } from "./services/example.service";
 
@@ -28,103 +10,116 @@ function App() {
   }, []);
 
   return (
-    <StyledEngineProvider injectFirst>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box sx={{ flexGrow: 1 }}>
-          <AppBar position="static">
-            <Toolbar>
-              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                BonusX Interview Challenge
-              </Typography>
-              <Button color="inherit">Login</Button>
-            </Toolbar>
-          </AppBar>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Header */}
+      <header className="bg-blue-600 text-white shadow-lg border-b-4 border-blue-700">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-semibold">BonusX Interview Challenge</h1>
+            <Button variant="secondary" size="sm">
+              Login
+            </Button>
+          </div>
+        </div>
+      </header>
 
-          <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Grid container spacing={3}>
-              <Grid size={12}>
-                <Paper sx={{ p: 2, mb: 3 }}>
-                  <Typography variant="h4" gutterBottom>
-                    Benvenuto nell'applicazione
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary">
-                    Questa è l'impostazione iniziale per l'app con Material-UI
-                    configurato correttamente.
-                  </Typography>
-                </Paper>
-              </Grid>
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
+        <div className="space-y-8">
+          {/* Welcome Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-3xl">Benvenuto nell'applicazione</CardTitle>
+              <CardDescription className="text-lg">
+                Questa è l'impostazione iniziale per l'app con Tailwind CSS e shadcn/ui
+                configurato correttamente.
+              </CardDescription>
+            </CardHeader>
+          </Card>
 
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h5" component="div">
-                      Funzionalità 1
-                    </Typography>
-                    <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                      Descrizione della prima funzionalità
-                    </Typography>
-                    <Typography variant="body2">
-                      Qui puoi aggiungere la tua prima funzionalità. Material-UI
-                      è ora configurato e funzionante.
-                    </Typography>
-                  </CardContent>
-                  <CardActions>
-                    <Button size="small">Scopri di più</Button>
-                  </CardActions>
-                </Card>
-              </Grid>
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Funzionalità 1</CardTitle>
+                <CardDescription>
+                  Descrizione della prima funzionalità
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Qui puoi aggiungere la tua prima funzionalità. Tailwind CSS e shadcn/ui
+                  sono ora configurati e funzionanti.
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Button size="sm">Scopri di più</Button>
+              </CardFooter>
+            </Card>
 
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h5" component="div">
-                      Funzionalità 2
-                    </Typography>
-                    <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                      Descrizione della seconda funzionalità
-                    </Typography>
-                    <Typography variant="body2">
-                      Qui puoi aggiungere la tua seconda funzionalità. Tutti i
-                      componenti Material-UI sono disponibili.
-                    </Typography>
-                  </CardContent>
-                  <CardActions>
-                    <Button
-                      size="small"
-                      onClick={async () => {
-                        const { message } = await exampleService.getMessage();
-                        alert(message);
-                      }}
-                    >
-                      Cliccami per fare una chiamata API
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Grid>
+            <Card>
+              <CardHeader>
+                <CardTitle>Funzionalità 2</CardTitle>
+                <CardDescription>
+                  Descrizione della seconda funzionalità
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Qui puoi aggiungere la tua seconda funzionalità. Tutti i
+                  componenti shadcn/ui sono disponibili.
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    const { message } = await exampleService.getMessage();
+                    alert(message);
+                  }}
+                >
+                  Cliccami per fare una chiamata API
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
 
-              <Grid size={12}>
-                <Paper sx={{ p: 2 }}>
-                  <Typography variant="h6" gutterBottom>
-                    Stato dell'applicazione
-                  </Typography>
-                  <Typography variant="body2">
-                    ✅ Material-UI configurato correttamente
-                    <br />
-                    ✅ Tema personalizzabile
-                    <br />
-                    ✅ Font Roboto caricato
-                    <br />
-                    ✅ Layout responsivo
-                    <br />✅ Componenti base implementati
-                  </Typography>
-                </Paper>
-              </Grid>
-            </Grid>
-          </Container>
-        </Box>
-      </ThemeProvider>
-    </StyledEngineProvider>
+          {/* Status Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                Stato dell'applicazione
+                <Badge variant="secondary">Aggiornato</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-green-500">✅</span>
+                  <span>Tailwind CSS configurato correttamente</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-500">✅</span>
+                  <span>shadcn/ui componenti installati</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-500">✅</span>
+                  <span>Design system moderno</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-500">✅</span>
+                  <span>Layout responsivo</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-500">✅</span>
+                  <span>Componenti accessibili</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    </div>
   );
 }
 

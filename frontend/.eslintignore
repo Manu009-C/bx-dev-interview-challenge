@@ -1,0 +1,11 @@
+# Config files that use CommonJS
+tailwind.config.cjs
+postcss.config.cjs
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Dependencies
+node_modules/
