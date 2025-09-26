@@ -9,6 +9,9 @@ export default defineConfig({
     },
   },
   source: {
+    define: {
+      "process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": JSON.stringify(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || process.env.CLERK_PUBLISHABLE_KEY),
+    },
     exclude: [
       /\.spec\.(tsx?|jsx?)$/,
       /\.test\.(tsx?|jsx?)$/,

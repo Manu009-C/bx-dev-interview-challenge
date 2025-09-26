@@ -1,20 +1,12 @@
-import { Button } from "./components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
-import { Badge } from "./components/ui/badge";
+import { Card, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
 import { Header } from "./components/header";
 import { ThemeProvider } from "./providers/theme-provider";
 import { ClerkProviderWrapper } from "./providers/clerk-provider";
 import { QueryProvider } from "./providers/query-provider";
 import { FileManager } from "./components/file-manager";
 import { Toaster } from "sonner";
-import { useMemo } from "react";
-import { ExampleService } from "./services/example.service";
 
 function AppInit() {
-  const exampleService = useMemo(function initExampleService() {
-    return new ExampleService();
-  }, []);
-
   return (
     <ThemeProvider
         attribute="class"
@@ -41,34 +33,6 @@ function AppInit() {
 
           {/* File Manager Component */}
           <FileManager />
-
-          {/* Demo Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                Demo API Call
-                <Badge variant="secondary">Available</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Test the backend connection with this demo API call.
-              </p>
-              <Button
-                size="sm"
-                onClick={async () => {
-                  try {
-                    const { message } = await exampleService.getMessage();
-                    alert(message);
-                  } catch (error) {
-                    alert(`API Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                  }
-                }}
-              >
-                Test Backend Connection
-              </Button>
-            </CardContent>
-          </Card>
         </div>
       </main>
         </div>

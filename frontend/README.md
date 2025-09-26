@@ -60,7 +60,6 @@ This will open Storybook at [http://localhost:6006](http://localhost:6006) where
 - View component documentation
 - Test accessibility features
 - **Switch themes**: Use the theme toggle in components or try the ThemeDemo story
-- **Test authentication**: See how components look with different auth states
 
 ## Clerk Themes Integration
 

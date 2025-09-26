@@ -1,6 +1,7 @@
 import { Mocked, TestBed } from '@suites/unit';
 import { NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Repository, DataSource, QueryRunner } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 import { FilesService } from './files.service';
 import { S3Service } from './s3.service';
 import { UserService } from './user.service';
@@ -25,6 +26,9 @@ describe('FilesService', () => {
   let fileRepository: Mocked<Repository<File>>;
   let s3Service: Mocked<S3Service>;
   let userService: Mocked<UserService>;
+  let configService: Mocked<ConfigService>;
+  let dataSource: Mocked<DataSource>;
+  let queryRunner: Mocked<QueryRunner>;
 
   const mockUser = {
     id: 'user-123',
@@ -58,6 +62,28 @@ describe('FilesService', () => {
     fileRepository = unitRef.get('FileRepository');
     s3Service = unitRef.get(S3Service);
     userService = unitRef.get(UserService);
+    configService = unitRef.get(ConfigService);
+    dataSource = unitRef.get(DataSource);
+
+    // Mock DataSource and QueryRunner
+    queryRunner = {
+      connect: jest.fn(),
+      startTransaction: jest.fn(),
+      commitTransaction: jest.fn(),
+      rollbackTransaction: jest.fn(),
+      release: jest.fn(),
+      manager: {
+        save: jest.fn(),
+        findOne: jest.fn(),
+        remove: jest.fn(),
+        update: jest.fn(),
+      },
+    } as unknown as Mocked<QueryRunner>;
+
+    dataSource.createQueryRunner.mockReturnValue(
+      queryRunner as unknown as QueryRunner,
+    );
+    configService.get.mockReturnValue({ bucketName: 'bonusx-bucket' });
 
     jest.spyOn(Mapper, 'mapData').mockImplementation();
     jest.spyOn(Mapper, 'mapArrayData').mockImplementation();
@@ -65,6 +91,10 @@ describe('FilesService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset DataSource mock
+    dataSource.createQueryRunner.mockReturnValue(
+      queryRunner as unknown as QueryRunner,
+    );
   });
 
   describe('uploadFile', () => {
@@ -85,33 +115,30 @@ describe('FilesService', () => {
         message: 'File uploaded successfully',
       });
 
+      // Setup mocks
       userService.findUserById.mockResolvedValue(mockUser);
+      fileRepository.findOne.mockResolvedValue(null); // No concurrent upload
       s3Service.uploadFile.mockResolvedValue(s3Key);
-      fileRepository.save.mockResolvedValue(mockFile);
+      queryRunner.manager.save.mockResolvedValue(mockFile);
       jest.spyOn(Mapper, 'mapData').mockReturnValue(fileDto);
 
       const result = await filesService.uploadFile(mockMulterFile, 'user-123');
 
       expect(userService.findUserById).toHaveBeenCalledWith('user-123');
+      expect(queryRunner.connect).toHaveBeenCalled();
+      expect(queryRunner.startTransaction).toHaveBeenCalled();
       expect(s3Service.uploadFile).toHaveBeenCalledWith(
         mockMulterFile,
         'user-123',
+        expect.stringMatching(/^users\/user-123\/\d+-test\.pdf$/),
       );
-      expect(fileRepository.save).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'test.pdf',
-          s3Key: s3Key,
-          s3Bucket: 'bonusx-bucket',
-          extensionType: 'PDF',
-          size: 0, // 1024 bytes = 0.001 MB, rounded to 0
-          userId: 'user-123',
-        }),
-      );
+      expect(queryRunner.commitTransaction).toHaveBeenCalled();
+      expect(queryRunner.release).toHaveBeenCalled();
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(Mapper.mapData as jest.Mock).toHaveBeenCalledWith(
-        FileDto,
-        mockFile,
-      );
+      expect(Mapper.mapData as jest.Mock).toHaveBeenCalledWith(FileDto, {
+        ...mockFile,
+        status: 'COMPLETED',
+      });
       expect(result).toEqual(expectedResponse);
     });
 
@@ -253,15 +280,18 @@ describe('FilesService', () => {
     it('should delete file successfully', async () => {
       fileRepository.findOne.mockResolvedValue(mockFile);
       s3Service.deleteFile.mockResolvedValue(undefined);
-      fileRepository.remove.mockResolvedValue(mockFile);
+      queryRunner.manager.remove.mockResolvedValue([mockFile]);
 
       await filesService.deleteFile('file-123', 'user-123');
 
       expect(fileRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 'file-123', userId: 'user-123' },
+        where: { id: 'file-123', userId: 'user-123', status: 'COMPLETED' },
       });
+      expect(queryRunner.connect).toHaveBeenCalled();
+      expect(queryRunner.startTransaction).toHaveBeenCalled();
       expect(s3Service.deleteFile).toHaveBeenCalledWith(mockFile.s3Key);
-      expect(fileRepository.remove).toHaveBeenCalledWith(mockFile);
+      expect(queryRunner.commitTransaction).toHaveBeenCalled();
+      expect(queryRunner.release).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException when file not found', async () => {

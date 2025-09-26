@@ -70,32 +70,62 @@ export class S3Service {
     }
   }
 
-  async uploadFile(file: Express.Multer.File, userId: string): Promise<string> {
-    const key = `users/${userId}/${uuidv4()}-${file.originalname}`;
+  async uploadFile(
+    file: Express.Multer.File,
+    userId: string,
+    customKey?: string,
+  ): Promise<string> {
+    const key = customKey || `users/${userId}/${uuidv4()}-${file.originalname}`;
+    const maxRetries = 3;
+    let retries = 0;
 
-    try {
-      await this.s3Client.send(
-        new PutObjectCommand({
-          Bucket: this.bucketName,
-          Key: key,
-          Body: file.buffer,
-          ContentType: file.mimetype,
-          Metadata: {
-            originalName: file.originalname,
-            userId: userId,
-          },
-        }),
-      );
+    while (retries < maxRetries) {
+      try {
+        await this.s3Client.send(
+          new PutObjectCommand({
+            Bucket: this.bucketName,
+            Key: key,
+            Body: file.buffer,
+            ContentType: file.mimetype,
+            Metadata: {
+              originalName: file.originalname,
+              userId: userId,
+              uploadTimestamp: new Date().toISOString(),
+            },
+          }),
+        );
 
-      return key;
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('NoSuchBucket')) {
-        throw new Error(
-          `S3 bucket '${this.bucketName}' does not exist. Please create it manually via MinIO Console at http://localhost:9001`,
+        // Verify upload was successful
+        const exists = await this.fileExists(key);
+        if (!exists) {
+          throw new Error('File upload verification failed');
+        }
+
+        return key;
+      } catch (error) {
+        retries++;
+        if (retries >= maxRetries) {
+          if (
+            error instanceof Error &&
+            error.message.includes('NoSuchBucket')
+          ) {
+            throw new Error(
+              `S3 bucket '${this.bucketName}' does not exist. Please create it manually via MinIO Console at http://localhost:9001`,
+            );
+          }
+          throw new Error(
+            `Failed to upload file after ${maxRetries} attempts: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+
+        // Exponential backoff
+        await new Promise((resolve) =>
+          setTimeout(resolve, 1000 * Math.pow(2, retries - 1)),
         );
       }
-      throw error;
     }
+
+    return key; // This should never be reached, but TypeScript requires it
   }
 
   async generateDownloadUrl(key: string): Promise<string> {

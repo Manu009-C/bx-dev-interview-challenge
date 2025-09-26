@@ -2,6 +2,7 @@ import { Mocked, TestBed } from '@suites/unit';
 import { BadRequestException } from '@nestjs/common';
 import { FilesController } from './files.controller';
 import { FilesService } from '../services/files.service';
+import { FileValidationService } from '../services/file-validation.service';
 import {
   FileUploadResponseDto,
   FileDownloadResponseDto,
@@ -12,6 +13,7 @@ import { ClerkUser } from '../modules/auth/strategies/clerk.strategy';
 describe('FilesController', () => {
   let filesController: FilesController;
   let filesService: Mocked<FilesService>;
+  let fileValidationService: Mocked<FileValidationService>;
 
   const mockUser: ClerkUser = {
     id: 'user-123',
@@ -33,6 +35,7 @@ describe('FilesController', () => {
 
     filesController = unit;
     filesService = unitRef.get(FilesService);
+    fileValidationService = unitRef.get(FileValidationService);
   });
 
   beforeEach(() => {
@@ -46,10 +49,33 @@ describe('FilesController', () => {
         message: 'File uploaded successfully',
       });
 
+      // Mock rate limit check to return success
+      fileValidationService.checkRateLimit.mockResolvedValue({
+        isAllowed: true,
+        remainingUploads: 19,
+        resetTime: new Date(),
+      });
+
+      // Mock file validation
+      fileValidationService.validateFile.mockResolvedValue({
+        isValid: true,
+        detectedMimeType: 'application/pdf',
+        fileHash: 'test-hash',
+        sanitizedFileName: 'test.pdf',
+      });
+
       filesService.uploadFile.mockResolvedValue(expectedResponse);
 
       const result = await filesController.uploadFile(mockMulterFile, mockUser);
 
+      expect(fileValidationService.checkRateLimit).toHaveBeenCalledWith(
+        mockUser.id,
+        mockMulterFile.size,
+      );
+      expect(fileValidationService.validateFile).toHaveBeenCalledWith(
+        mockMulterFile,
+        mockUser.id,
+      );
       expect(filesService.uploadFile).toHaveBeenCalledWith(
         mockMulterFile,
         mockUser.id,
@@ -89,6 +115,7 @@ describe('FilesController', () => {
 
   describe('downloadFile', () => {
     it('should generate download URL', async () => {
+      const validFileId = '123e4567-e89b-12d3-a456-426614174000';
       const expectedResponse = new FileDownloadResponseDto({
         downloadUrl: 'https://s3.example.com/download-url',
         expiresIn: 3600,
@@ -96,10 +123,10 @@ describe('FilesController', () => {
 
       filesService.generateDownloadUrl.mockResolvedValue(expectedResponse);
 
-      const result = await filesController.downloadFile('file-123', mockUser);
+      const result = await filesController.downloadFile(validFileId, mockUser);
 
       expect(filesService.generateDownloadUrl).toHaveBeenCalledWith(
-        'file-123',
+        validFileId,
         mockUser.id,
       );
       expect(result).toEqual(expectedResponse);
@@ -108,19 +135,20 @@ describe('FilesController', () => {
 
   describe('getFileMetadata', () => {
     it('should return file metadata', async () => {
-      const expectedMetadata = { id: 'file-123', name: 'test.pdf' };
+      const validFileId = '123e4567-e89b-12d3-a456-426614174000';
+      const expectedMetadata = { id: validFileId, name: 'test.pdf' };
 
       filesService.getFileMetadata.mockResolvedValue(
         expectedMetadata as unknown as FileDto,
       );
 
       const result = await filesController.getFileMetadata(
-        'file-123',
+        validFileId,
         mockUser,
       );
 
       expect(filesService.getFileMetadata).toHaveBeenCalledWith(
-        'file-123',
+        validFileId,
         mockUser.id,
       );
       expect(result).toEqual(expectedMetadata);
@@ -129,12 +157,13 @@ describe('FilesController', () => {
 
   describe('deleteFile', () => {
     it('should delete file successfully', async () => {
+      const validFileId = '123e4567-e89b-12d3-a456-426614174000';
       filesService.deleteFile.mockResolvedValue(undefined);
 
-      const result = await filesController.deleteFile('file-123', mockUser);
+      const result = await filesController.deleteFile(validFileId, mockUser);
 
       expect(filesService.deleteFile).toHaveBeenCalledWith(
-        'file-123',
+        validFileId,
         mockUser.id,
       );
       expect(result).toEqual({ message: 'File deleted successfully' });

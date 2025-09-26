@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -16,6 +17,13 @@ export enum FileExtensionType {
   PDF = 'PDF',
 }
 
+export enum FileStatus {
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+  DELETING = 'DELETING',
+  FAILED = 'FAILED',
+}
+
 export interface IFileEntity {
   id: string;
   userId: string;
@@ -25,6 +33,8 @@ export interface IFileEntity {
   size: number; // in Megabytes
   name: string;
   extensionType: FileExtensionType;
+  status: FileStatus;
+  errorMessage?: string;
   uploadedAt: Date;
 }
 
@@ -34,6 +44,7 @@ export class File implements IFileEntity {
   @Expose()
   id: string;
 
+  @Index()
   @Column()
   @Expose()
   userId: string;
@@ -65,6 +76,19 @@ export class File implements IFileEntity {
   })
   @Expose()
   extensionType: FileExtensionType;
+
+  @Index()
+  @Column({
+    type: 'enum',
+    enum: FileStatus,
+    default: FileStatus.PENDING,
+  })
+  @Expose()
+  status: FileStatus;
+
+  @Column({ nullable: true })
+  @Expose()
+  errorMessage?: string;
 
   @CreateDateColumn()
   @Expose()
