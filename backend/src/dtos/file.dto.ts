@@ -2,21 +2,20 @@ import { Expose } from 'class-transformer';
 import {
   IsString,
   IsNotEmpty,
-  IsOptional,
   IsNumber,
   IsUUID,
+  IsEnum,
 } from 'class-validator';
+import { FileExtensionType } from '../entities/file.entity';
 
 export interface IFileDto {
   id: string;
-  originalName: string;
-  fileName: string;
-  mimeType: string;
-  size: number;
+  userId: string;
   s3Bucket: string;
   s3Key: string;
-  thumbnailUrl?: string;
-  userId: string;
+  size: number; // in Megabytes
+  name: string;
+  extensionType: FileExtensionType;
   uploadedAt: Date;
 }
 
@@ -28,21 +27,7 @@ export class FileDto implements IFileDto {
   @IsString()
   @IsNotEmpty()
   @Expose()
-  originalName: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @Expose()
-  fileName: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @Expose()
-  mimeType: string;
-
-  @IsNumber()
-  @Expose()
-  size: number;
+  userId: string;
 
   @IsString()
   @IsNotEmpty()
@@ -54,15 +39,18 @@ export class FileDto implements IFileDto {
   @Expose()
   s3Key: string;
 
-  @IsString()
-  @IsOptional()
+  @IsNumber()
   @Expose()
-  thumbnailUrl?: string;
+  size: number; // in Megabytes
 
   @IsString()
   @IsNotEmpty()
   @Expose()
-  userId: string;
+  name: string;
+
+  @IsEnum(FileExtensionType)
+  @Expose()
+  extensionType: FileExtensionType;
 
   @Expose()
   uploadedAt: Date;

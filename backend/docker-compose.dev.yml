@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: dockerfile
+    ports:
+      - "3000:80"
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://postgres:password@database.local:5432/bonusx_db
@@ -15,18 +17,14 @@ services:
       - S3_REGION=us-east-1
       - CLERK_SECRET_KEY=${CLERK_SECRET_KEY:-sk_test_development_key}
       - CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY:-pk_test_Y3JlYXRpdmUtY29sdC02MC5jbGVyay5hY2NvdW50cy5kZXYk}
-      - CLERK_PEM_PUBLIC_KEY=${CLERK_PEM_PUBLIC_KEY:------BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA55zZWpy/h/6UjrPXq1bi\nZ31hSzw9vyOYuKTUmiqeYPNl/eimksFo0Jupo+rtllpH8+ax6rl6/mexTd9ohOZB\nmvz5eq0FCwRN/09WjqyEga3bDnu/2QlgM4lvIRXqoO6l67BRBwIXkamdhmfCc2yd\nob+XppGtf4suchoDZVpbqVp943liqlUGDlk8DLa976wZRhtjAes2HhH9li4PIUL7\nlJPOFdLu6nbDq7uT6cAPl1JGLOlD8VOsVnh+CEutmhW6HzxKHMB3ySDbsZlRcbuS\nt1VAtsjoxQI1TyiaHE1Add9rkxoVn7Cf5NVMxBs5k9IcwVwZ+AwSQeiS+0IVs3aU\n1wIDAQAB\n-----END PUBLIC KEY-----}
       - CLERK_JWKS_URL=${CLERK_JWKS_URL:-https://creative-colt-60.clerk.accounts.dev/.well-known/jwks.json}
-      - PORT=3000
+      - PORT=80
       - FRONTEND_URL=http://localhost:3000
     depends_on:
       - postgres
-      - s3ninja
+      - minio
     networks:
       - bonusx-network
-    volumes:
-      - .:/app
-      - /app/node_modules
 
   postgres:
     hostname: database.local
@@ -35,21 +33,26 @@ services:
       - POSTGRES_DB=bonusx_db
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
-    expose:
-      - '5432'
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - bonusx-network
 
-  s3ninja:
+  minio:
     hostname: storage.local
-    image: scireum/s3-ninja:latest
-    expose:
-      - '9000'
+    image: quay.io/minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=NINJA_ACCESS_KEY
+      - MINIO_ROOT_PASSWORD=NINJA_SECRET_KEY
     volumes:
-      - ./docker/storage_data:/home/sirius/data
+      - ./docker/storage_data:/data
     networks:
       - bonusx-network
 

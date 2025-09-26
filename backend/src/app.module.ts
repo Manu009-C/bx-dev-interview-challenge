@@ -6,6 +6,7 @@ import { AppController } from './controllers/app.controller';
 import { FilesController } from './controllers/files.controller';
 import { AppService } from './services/app/app.service';
 import { FilesService } from './services/files.service';
+import { FileValidationService } from './services/file-validation.service';
 import { S3Service } from './services/s3.service';
 import { UserService } from './services/user.service';
 import { User } from './entities/user.entity';
@@ -26,6 +27,12 @@ import { AuthModule } from './modules/auth/auth.module';
     AuthModule,
   ],
   controllers: [AppController, FilesController],
-  providers: [AppService, FilesService, S3Service, UserService],
+  providers: [
+    AppService,
+    FilesService,
+    FileValidationService,
+    S3Service,
+    UserService,
+  ],
 })
 export class AppModule {}

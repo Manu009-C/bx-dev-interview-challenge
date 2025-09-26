@@ -3,23 +3,38 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 
+export enum FileExtensionType {
+  MP3 = 'MP3',
+  PNG = 'PNG',
+  JPG = 'JPG',
+  PDF = 'PDF',
+}
+
+export enum FileStatus {
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+  DELETING = 'DELETING',
+  FAILED = 'FAILED',
+}
+
 export interface IFileEntity {
   id: string;
-  originalName: string;
-  fileName: string; // S3 key
-  mimeType: string;
-  size: number;
+  userId: string;
   s3Bucket: string;
   s3Key: string;
-  thumbnailUrl?: string;
   user?: User;
-  userId: string;
+  size: number; // in Megabytes
+  name: string;
+  extensionType: FileExtensionType;
+  status: FileStatus;
+  errorMessage?: string;
   uploadedAt: Date;
 }
 
@@ -29,21 +44,10 @@ export class File implements IFileEntity {
   @Expose()
   id: string;
 
+  @Index()
   @Column()
   @Expose()
-  originalName: string;
-
-  @Column()
-  @Expose()
-  fileName: string; // S3 key
-
-  @Column()
-  @Expose()
-  mimeType: string;
-
-  @Column('bigint')
-  @Expose()
-  size: number;
+  userId: string;
 
   @Column()
   @Expose()
@@ -53,18 +57,38 @@ export class File implements IFileEntity {
   @Expose()
   s3Key: string;
 
-  @Column({ nullable: true })
-  @Expose()
-  thumbnailUrl?: string;
-
   @ManyToOne(() => User, (user) => user.files)
   @JoinColumn({ name: 'userId' })
   @Expose()
   user?: User;
 
+  @Column('decimal', { precision: 10, scale: 2 })
+  @Expose()
+  size: number; // in Megabytes
+
   @Column()
   @Expose()
-  userId: string;
+  name: string;
+
+  @Column({
+    type: 'enum',
+    enum: FileExtensionType,
+  })
+  @Expose()
+  extensionType: FileExtensionType;
+
+  @Index()
+  @Column({
+    type: 'enum',
+    enum: FileStatus,
+    default: FileStatus.PENDING,
+  })
+  @Expose()
+  status: FileStatus;
+
+  @Column({ nullable: true })
+  @Expose()
+  errorMessage?: string;
 
   @CreateDateColumn()
   @Expose()

@@ -1,9 +1,11 @@
-import { Injectable, ExecutionContext } from '@nestjs/common';
+import { Injectable, ExecutionContext, Logger } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('clerk') {
+  private readonly logger = new Logger(JwtAuthGuard.name);
+
   constructor(private reflector: Reflector) {
     super();
   }
@@ -14,10 +16,21 @@ export class JwtAuthGuard extends AuthGuard('clerk') {
       context.getClass(),
     ]);
 
-    if (isPublic) {
-      return true;
-    }
+    if (isPublic) return true;
 
-    return super.canActivate(context);
+    const result = super.canActivate(context);
+
+    if (result instanceof Promise) {
+      return result.then(
+        (success) => {
+          return success;
+        },
+        (error: Error) => {
+          throw error;
+        },
+      );
+    } else {
+      return result;
+    }
   }
 }

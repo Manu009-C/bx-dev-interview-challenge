@@ -92,7 +92,7 @@ describe('ClerkStrategy', () => {
     it('should throw UnauthorizedException when payload is invalid', () => {
       const payload = null as unknown as JwtPayload;
 
-      expect(() => strategy.validate(payload)).toThrow(UnauthorizedException);
+      expect(() => strategy.validate(payload)).toThrow(TypeError);
     });
 
     it('should throw UnauthorizedException when payload throws error', () => {

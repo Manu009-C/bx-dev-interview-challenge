@@ -6,9 +6,10 @@ import { AppModule } from './app.module';
 import { JwtAuthGuard } from './modules/auth/guards/auth.guard';
 import { AuthExceptionFilter } from './filters/auth-exception.filter';
 import * as dotenv from 'dotenv';
+import * as path from 'path';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from .env file
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 async function bootstrap() {
   const logger = new ConsoleLogger({
@@ -28,7 +29,11 @@ async function bootstrap() {
     }),
   );
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      process.env.FRONTEND_URL,
+    ].filter(Boolean),
     credentials: true,
   });
 

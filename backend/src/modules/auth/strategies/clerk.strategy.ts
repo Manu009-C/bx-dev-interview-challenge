@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 
@@ -20,15 +20,29 @@ export interface JwtPayload {
   lastName?: string;
   picture?: string;
   profileImageUrl?: string;
+  iat?: number; // Issued at
+  exp?: number; // Expires at
+  nbf?: number; // Not before
+  aud?: string; // Audience
+  iss?: string; // Issuer
 }
 
 @Injectable()
 export class ClerkStrategy extends PassportStrategy(Strategy, 'clerk') {
+  private readonly logger = new Logger(ClerkStrategy.name);
+
   constructor() {
+    // Create proper PEM format from the base64 key
+    const base64Key =
+      'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA55zZWpy/h/6UjrPXq1biZ31hSzw9vyOYuKTUmiqeYPNl/eimksFo0Jupo+rtllpH8+ax6rl6/mexTd9ohOZBmvz5eq0FCwRN/09WjqyEga3bDnu/2QlgM4lvIRXqoO6l67BRBwIXkamdhmfCc2ydob+XppGtf4suchoDZVpbqVp943liqlUGDlk8DLa976wZRhtjAes2HhH9li4PIUL7lJPOFdLu6nbDq7uT6cAPl1JGLOlD8VOsVnh+CEutmhW6HzxKHMB3ySDbsZlRcbuSt1VAtsjoxQI1TyiaHE1Add9rkxoVn7Cf5NVMxBs5k9IcwVwZ+AwSQeiS+0IVs3aU1wIDAQAB';
+
+    // Format it properly with line breaks every 64 characters
+    const pemBody = base64Key.match(/.{1,64}/g)?.join('\n') || base64Key;
+    const secretOrKey = `-----BEGIN PUBLIC KEY-----\n${pemBody}\n-----END PUBLIC KEY-----`;
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey:
-        process.env.CLERK_PEM_PUBLIC_KEY || process.env.CLERK_JWKS_URL,
+      secretOrKey,
       algorithms: ['RS256'],
     });
   }
@@ -50,8 +64,12 @@ export class ClerkStrategy extends PassportStrategy(Strategy, 'clerk') {
       }
 
       return user;
-    } catch {
-      throw new UnauthorizedException('Token validation failed');
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      // For other errors (like TypeError from null payload), let them bubble up
+      throw error;
     }
   }
 }

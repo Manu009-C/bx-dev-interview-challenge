@@ -4,11 +4,14 @@ import {
   ArgumentsHost,
   UnauthorizedException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 
 @Catch(UnauthorizedException, ForbiddenException)
 export class AuthExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(AuthExceptionFilter.name);
+
   catch(
     exception: UnauthorizedException | ForbiddenException,
     host: ArgumentsHost,
@@ -17,7 +20,6 @@ export class AuthExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const status = exception.getStatus();
     const request = ctx.getRequest<Request>();
-
     const errorResponse = {
       statusCode: status,
       timestamp: new Date().toISOString(),

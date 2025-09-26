@@ -38,8 +38,21 @@ describe('UserService', () => {
   });
 
   describe('findOrCreateUser', () => {
-    it('should return existing user when found', async () => {
+    it('should return existing user when found and no changes needed', async () => {
       userRepository.findOne.mockResolvedValue(mockUser);
+
+      const result = await userService.findOrCreateUser(mockClerkUser);
+
+      expect(userRepository.findOne).toHaveBeenCalledWith({
+        where: { id: mockClerkUser.id },
+      });
+      expect(userRepository.save).not.toHaveBeenCalled();
+      expect(result).toEqual(mockUser);
+    });
+
+    it('should update existing user when data has changed', async () => {
+      const existingUser = { ...mockUser, email: 'old@example.com' };
+      userRepository.findOne.mockResolvedValue(existingUser);
       userRepository.save.mockResolvedValue(mockUser);
 
       const result = await userService.findOrCreateUser(mockClerkUser);

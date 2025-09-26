@@ -29,13 +29,21 @@ export class UserService {
 
       user = await this.userRepository.save(user);
     } else {
-      // Update existing user with latest Clerk data
-      user.email = clerkUser.email;
-      user.firstName = clerkUser.firstName;
-      user.lastName = clerkUser.lastName;
-      user.profileImageUrl = clerkUser.profileImageUrl;
+      // Only update if data has actually changed
+      const hasChanges =
+        user.email !== clerkUser.email ||
+        user.firstName !== clerkUser.firstName ||
+        user.lastName !== clerkUser.lastName ||
+        user.profileImageUrl !== clerkUser.profileImageUrl;
 
-      user = await this.userRepository.save(user);
+      if (hasChanges) {
+        user.email = clerkUser.email;
+        user.firstName = clerkUser.firstName;
+        user.lastName = clerkUser.lastName;
+        user.profileImageUrl = clerkUser.profileImageUrl;
+
+        user = await this.userRepository.save(user);
+      }
     }
 
     return user;
