@@ -51,18 +51,27 @@ export class ClerkStrategy extends PassportStrategy(Strategy, 'clerk') {
   }
 
   validate(payload: JwtPayload): ClerkUser {
-    this.logger.log('✅ JWT signature validation passed - entering validate()');
-    this.logger.log(`📄 Token payload received:`, {
-      sub: payload.sub,
-      userId: payload.userId,
-      email: payload.email,
-      given_name: payload.given_name,
-      firstName: payload.firstName,
-      family_name: payload.family_name,
-      lastName: payload.lastName,
-      iat: payload.iat ? new Date(payload.iat * 1000).toISOString() : 'not set',
-      exp: payload.exp ? new Date(payload.exp * 1000).toISOString() : 'not set',
-    });
+    // Reduce logging in development for better performance
+    if (process.env.NODE_ENV !== 'development') {
+      this.logger.log(
+        '✅ JWT signature validation passed - entering validate()',
+      );
+      this.logger.log(`📄 Token payload received:`, {
+        sub: payload.sub,
+        userId: payload.userId,
+        email: payload.email,
+        given_name: payload.given_name,
+        firstName: payload.firstName,
+        family_name: payload.family_name,
+        lastName: payload.lastName,
+        iat: payload.iat
+          ? new Date(payload.iat * 1000).toISOString()
+          : 'not set',
+        exp: payload.exp
+          ? new Date(payload.exp * 1000).toISOString()
+          : 'not set',
+      });
+    }
 
     try {
       // For JWT strategy, the payload is already verified by Passport
@@ -75,19 +84,23 @@ export class ClerkStrategy extends PassportStrategy(Strategy, 'clerk') {
         profileImageUrl: payload.picture || payload.profileImageUrl,
       };
 
-      this.logger.log(`👤 Extracted user:`, {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      });
+      if (process.env.NODE_ENV !== 'development') {
+        this.logger.log(`👤 Extracted user:`, {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        });
+      }
 
       if (!user.id) {
         this.logger.error('❌ No user ID found in token payload');
         throw new UnauthorizedException('Invalid token payload');
       }
 
-      this.logger.log('🎉 User validation successful');
+      if (process.env.NODE_ENV !== 'development') {
+        this.logger.log('🎉 User validation successful');
+      }
       return user;
     } catch (error) {
       this.logger.error('❌ Token validation failed:', error);

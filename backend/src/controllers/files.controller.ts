@@ -18,31 +18,28 @@ import {
 import { CurrentUser } from '../modules/auth/decorators/current-user.decorator';
 import { ClerkUser } from '../modules/auth/strategies/clerk.strategy';
 
-// File filter function
+// File filter function - restrict to only MP3, PNG, JPG, and PDF
 const fileFilter = (
   req: any,
   file: Express.Multer.File,
   callback: (error: any, success: boolean) => void,
 ) => {
   const allowedMimes = [
-    'image/jpeg',
+    'audio/mpeg',
+    'audio/mp3',
     'image/png',
-    'image/gif',
-    'image/webp',
+    'image/jpeg',
+    'image/jpg',
     'application/pdf',
-    'text/plain',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'application/vnd.ms-powerpoint',
-    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   ];
 
   if (allowedMimes.includes(file.mimetype)) {
     callback(null, true);
   } else {
-    callback(new BadRequestException('File type not allowed'), false);
+    callback(
+      new BadRequestException('Only MP3, PNG, JPG, and PDF files are allowed'),
+      false,
+    );
   }
 };
 

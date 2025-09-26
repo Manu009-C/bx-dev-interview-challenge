@@ -6,6 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "setup": "cd backend && docker-compose -f docker-compose.dev.yml up -d postgres s3ninja",
+    "teardown": "cd backend && docker-compose -f docker-compose.dev.yml down",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { FileMetadata } from "../services/files.service";
+import { FileMetadata, FileExtensionType } from "../services/files.service";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { ExternalLink, Trash2, File, Image, FileText, FileSpreadsheet, FileSliders } from "lucide-react";
+import { ExternalLink, Trash2, File, Image, FileText, Music } from "lucide-react";
 
 interface FilesTableProps {
   files: FileMetadata[];
@@ -18,44 +18,47 @@ export function FilesTable({ files, onDelete, onDownload, isLoading = false }: F
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
   const [downloadingFileId, setDownloadingFileId] = useState<string | null>(null);
 
-  const getFileIcon = (mimeType: string) => {
-    if (mimeType.startsWith("image/")) {
-      return <Image className="h-4 w-4" />;
-    } else if (mimeType === "application/pdf") {
-      return <FileText className="h-4 w-4" />;
-    } else if (mimeType.includes("spreadsheet") || mimeType.includes("excel")) {
-      return <FileSpreadsheet className="h-4 w-4" />;
-    } else if (mimeType.includes("presentation") || mimeType.includes("powerpoint")) {
-      return <FileSliders className="h-4 w-4" />;
-    } else {
-      return <File className="h-4 w-4" />;
+  const getFileIcon = (extensionType: FileExtensionType) => {
+    switch (extensionType) {
+      case FileExtensionType.PNG:
+      case FileExtensionType.JPG:
+        return <Image className="h-4 w-4" />;
+      case FileExtensionType.PDF:
+        return <FileText className="h-4 w-4" />;
+      case FileExtensionType.MP3:
+        return <Music className="h-4 w-4" />;
+      default:
+        return <File className="h-4 w-4" />;
     }
   };
 
-  const getFileTypeBadge = (mimeType: string) => {
-    if (mimeType.startsWith("image/")) {
-      return <Badge variant="secondary">Image</Badge>;
-    } else if (mimeType === "application/pdf") {
-      return <Badge variant="secondary">PDF</Badge>;
-    } else if (mimeType.includes("word")) {
-      return <Badge variant="secondary">Word</Badge>;
-    } else if (mimeType.includes("spreadsheet") || mimeType.includes("excel")) {
-      return <Badge variant="secondary">Excel</Badge>;
-    } else if (mimeType.includes("presentation") || mimeType.includes("powerpoint")) {
-      return <Badge variant="secondary">PowerPoint</Badge>;
-    } else if (mimeType === "text/plain") {
-      return <Badge variant="secondary">Text</Badge>;
-    } else {
-      return <Badge variant="outline">Document</Badge>;
+  const getFileTypeBadge = (extensionType: FileExtensionType) => {
+    switch (extensionType) {
+      case FileExtensionType.PNG:
+        return <Badge variant="secondary">PNG</Badge>;
+      case FileExtensionType.JPG:
+        return <Badge variant="secondary">JPG</Badge>;
+      case FileExtensionType.PDF:
+        return <Badge variant="secondary">PDF</Badge>;
+      case FileExtensionType.MP3:
+        return <Badge variant="secondary">MP3</Badge>;
+      default:
+        return <Badge variant="outline">Unknown</Badge>;
     }
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  const formatFileSize = (sizeInMB: number | string) => {
+    // Ensure size is a number (database may return decimal as string)
+    const size = typeof sizeInMB === 'string' ? parseFloat(sizeInMB) : sizeInMB;
+    
+    if (size === 0 || isNaN(size)) return "0 MB";
+    if (size < 1) {
+      return `${(size * 1024).toFixed(2)} KB`;
+    }
+    if (size < 1024) {
+      return `${size.toFixed(2)} MB`;
+    }
+    return `${(size / 1024).toFixed(2)} GB`;
   };
 
   const formatDate = (dateString: string) => {
@@ -132,14 +135,14 @@ export function FilesTable({ files, onDelete, onDownload, isLoading = false }: F
             >
               <div className="flex items-center space-x-4 flex-1 min-w-0">
                 <div className="flex-shrink-0">
-                  {getFileIcon(file.mimeType)}
+                  {getFileIcon(file.extensionType)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate" title={file.originalName}>
-                    {file.originalName}
+                  <p className="font-medium truncate" title={file.name}>
+                    {file.name}
                   </p>
                   <div className="flex items-center space-x-2 mt-1">
-                    {getFileTypeBadge(file.mimeType)}
+                    {getFileTypeBadge(file.extensionType)}
                     <span className="text-sm text-muted-foreground">
                       {formatFileSize(file.size)}
                     </span>

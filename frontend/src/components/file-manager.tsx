@@ -7,6 +7,7 @@ import { FilesService } from "../services/files.service";
 import { FileUpload } from "./file-upload";
 import { FilesTable } from "./files-table";
 import { AuthOverlay } from "./auth-overlay";
+import { useUserSync } from "../hooks/use-user-sync";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Upload, RefreshCw } from "lucide-react";
@@ -18,6 +19,9 @@ export function FileManager() {
   const queryClient = useQueryClient();
   const [filesService] = useState(() => new FilesService());
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
+  // Hook to sync user with backend after login
+  const { isUserSynced } = useUserSync();
 
   // Set up the token getter for the files service
   useEffect(() => {
@@ -33,7 +37,7 @@ export function FileManager() {
   } = useQuery({
     queryKey: ["files"],
     queryFn: () => filesService.getUserFiles(),
-    enabled: isSignedIn,
+    enabled: isSignedIn, // Fetch files when user is signed in
   });
 
   // Mutation to upload file
@@ -66,7 +70,6 @@ export function FileManager() {
     try {
       const response = await filesService.getFileDownloadUrl(fileId);
       window.open(response.downloadUrl, "_blank");
-      toast.success("Download started!");
     } catch (error: any) {
       toast.error(`Download failed: ${error.message}`);
     }
@@ -94,13 +97,24 @@ export function FileManager() {
       <div className="space-y-8">
         {/* File Upload Section */}
         <Card>
-          <CardHeader className="pb-4">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5 " />
               Upload Files
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
+            {isSignedIn && !isUserSynced && (
+              <div className="flex items-center justify-center p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                  <span className="text-sm text-muted-foreground">
+                    Syncing user data...
+                  </span>
+                </div>
+              </div>
+            )}
+            
             <FileUpload
               onFileSelect={handleFileSelect}
               selectedFile={selectedFile}

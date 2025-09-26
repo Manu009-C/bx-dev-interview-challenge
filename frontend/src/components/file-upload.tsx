@@ -29,17 +29,13 @@ export function FileUpload({ onFileSelect, selectedFile, onClearFile, disabled =
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     disabled,
+    maxSize: 10 * 1024 * 1024, // 10MB
     multiple: false,
     accept: {
-      "image/*": [".jpeg", ".jpg", ".png", ".gif", ".webp"],
+      "audio/mpeg": [".mp3"],
+      "image/png": [".png"],
+      "image/jpeg": [".jpg", ".jpeg"],
       "application/pdf": [".pdf"],
-      "text/plain": [".txt"],
-      "application/msword": [".doc"],
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
-      "application/vnd.ms-excel": [".xls"],
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
-      "application/vnd.ms-powerpoint": [".ppt"],
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation": [".pptx"],
     },
   });
 
@@ -102,7 +98,7 @@ export function FileUpload({ onFileSelect, selectedFile, onClearFile, disabled =
                     : "Drag & drop a file here, or click to select"}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Supports: Images, PDF, Documents (DOC, DOCX, XLS, XLSX, PPT, PPTX), Text files
+                  Supports: MP3, PNG, JPG, PDF files only
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Maximum file size: 10MB

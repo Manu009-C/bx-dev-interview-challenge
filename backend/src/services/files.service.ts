@@ -1,7 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
-import { File } from '../entities/file.entity';
+import { File, FileExtensionType } from '../entities/file.entity';
 import { User } from '../entities/user.entity';
 import { S3Service } from './s3.service';
 import { UserService } from './user.service';
@@ -21,30 +26,78 @@ export class FilesService {
     private userRepository: Repository<User>,
     private s3Service: S3Service,
     private userService: UserService,
+    private configService: ConfigService,
   ) {}
+
+  private getFileExtensionType(
+    mimeType: string,
+    fileName: string,
+  ): FileExtensionType {
+    // Get file extension from filename
+    const extension = fileName.split('.').pop()?.toUpperCase();
+
+    // Map mime types and extensions to our enum
+    const mimeToExtension: { [key: string]: FileExtensionType } = {
+      'audio/mpeg': FileExtensionType.MP3,
+      'audio/mp3': FileExtensionType.MP3,
+      'image/png': FileExtensionType.PNG,
+      'image/jpeg': FileExtensionType.JPG,
+      'image/jpg': FileExtensionType.JPG,
+      'application/pdf': FileExtensionType.PDF,
+    };
+
+    // Check by mime type first
+    if (mimeToExtension[mimeType]) {
+      return mimeToExtension[mimeType];
+    }
+
+    // Check by file extension
+    if (
+      extension &&
+      Object.values(FileExtensionType).includes(extension as FileExtensionType)
+    ) {
+      return extension as FileExtensionType;
+    }
+
+    throw new BadRequestException(
+      `Unsupported file type. Only MP3, PNG, JPG, and PDF files are allowed.`,
+    );
+  }
 
   async uploadFile(
     file: Express.Multer.File,
     userId: string,
   ): Promise<FileUploadResponseDto> {
-    // Ensure user exists or create if not
+    // Note: We'll rely on the frontend to sync user via /api/sync-user endpoint
+    // before attempting file upload, so user should already exist
     const user = await this.userService.findUserById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(
+        'User not found. Please ensure user is synced first.',
+      );
     }
+
+    // Validate file extension type
+    const extensionType = this.getFileExtensionType(
+      file.mimetype,
+      file.originalname,
+    );
 
     // Upload file to S3
     const s3Key = await this.s3Service.uploadFile(file, userId);
 
+    // Convert size from bytes to megabytes
+    const sizeInMB = Number((file.size / (1024 * 1024)).toFixed(2));
+
     // Save file metadata to database
+    const s3Config = this.configService.get<{ bucketName: string }>('s3');
     const fileEntity = new File({
-      originalName: file.originalname,
-      fileName: s3Key,
-      mimeType: file.mimetype,
-      size: file.size,
-      s3Bucket: process.env.S3_BUCKET_NAME,
-      s3Key: s3Key,
       userId: userId,
+      s3Bucket: s3Config?.bucketName || 'bonusx-bucket',
+      s3Key: s3Key,
+      size: sizeInMB,
+      name: file.originalname,
+      extensionType: extensionType,
     });
 
     const savedFile = await this.fileRepository.save(fileEntity);

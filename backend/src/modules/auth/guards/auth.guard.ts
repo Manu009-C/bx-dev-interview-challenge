@@ -17,10 +17,15 @@ export class JwtAuthGuard extends AuthGuard('clerk') {
     const url = request.url;
     const authHeader = request.headers['authorization'] as string;
 
-    this.logger.log(`🚪 Auth guard triggered: ${method} ${url}`);
-    this.logger.log(
-      `🔑 Authorization header: ${authHeader ? `Bearer ${authHeader.substring(7, 20)}...` : 'NOT PRESENT'}`,
-    );
+    // Reduce logging in development for better performance
+    if (process.env.NODE_ENV === 'development') {
+      this.logger.debug(`🚪 ${method} ${url}`);
+    } else {
+      this.logger.log(`🚪 Auth guard triggered: ${method} ${url}`);
+      this.logger.log(
+        `🔑 Authorization header: ${authHeader ? `Bearer ${authHeader.substring(7, 20)}...` : 'NOT PRESENT'}`,
+      );
+    }
 
     const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
       context.getHandler(),
@@ -28,11 +33,15 @@ export class JwtAuthGuard extends AuthGuard('clerk') {
     ]);
 
     if (isPublic) {
-      this.logger.log('🌐 Route is public - skipping authentication');
+      if (process.env.NODE_ENV !== 'development') {
+        this.logger.log('🌐 Route is public - skipping authentication');
+      }
       return true;
     }
 
-    this.logger.log('🔒 Route is protected - starting JWT validation');
+    if (process.env.NODE_ENV !== 'development') {
+      this.logger.log('🔒 Route is protected - starting JWT validation');
+    }
     const result = super.canActivate(context);
 
     if (result instanceof Promise) {
@@ -43,10 +52,10 @@ export class JwtAuthGuard extends AuthGuard('clerk') {
           );
           return success;
         },
-        (error) => {
+        (error: Error) => {
           this.logger.error(
             '❌ Authentication failed with error:',
-            error.message as string,
+            error.message,
           );
           throw error;
         },

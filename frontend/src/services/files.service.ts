@@ -1,14 +1,19 @@
+export enum FileExtensionType {
+  MP3 = 'MP3',
+  PNG = 'PNG',
+  JPG = 'JPG',
+  PDF = 'PDF',
+}
+
 export interface FileUploadResponse {
   file: {
     id: string;
-    originalName: string;
-    fileName: string;
-    mimeType: string;
-    size: number;
+    userId: string;
     s3Bucket: string;
     s3Key: string;
-    thumbnailUrl: string | null;
-    userId: string;
+    size: number | string; // in Megabytes (may come as string from database decimal)
+    name: string;
+    extensionType: FileExtensionType;
     uploadedAt: string;
   };
   message: string;
@@ -21,14 +26,12 @@ export interface FileDownloadResponse {
 
 export interface FileMetadata {
   id: string;
-  originalName: string;
-  fileName: string;
-  mimeType: string;
-  size: number;
+  userId: string;
   s3Bucket: string;
   s3Key: string;
-  thumbnailUrl: string | null;
-  userId: string;
+  size: number | string; // in Megabytes (may come as string from database decimal)
+  name: string;
+  extensionType: FileExtensionType;
   uploadedAt: string;
 }
 

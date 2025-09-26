@@ -9,17 +9,22 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 
+export enum FileExtensionType {
+  MP3 = 'MP3',
+  PNG = 'PNG',
+  JPG = 'JPG',
+  PDF = 'PDF',
+}
+
 export interface IFileEntity {
   id: string;
-  originalName: string;
-  fileName: string; // S3 key
-  mimeType: string;
-  size: number;
+  userId: string;
   s3Bucket: string;
   s3Key: string;
-  thumbnailUrl?: string;
   user?: User;
-  userId: string;
+  size: number; // in Megabytes
+  name: string;
+  extensionType: FileExtensionType;
   uploadedAt: Date;
 }
 
@@ -31,19 +36,7 @@ export class File implements IFileEntity {
 
   @Column()
   @Expose()
-  originalName: string;
-
-  @Column()
-  @Expose()
-  fileName: string; // S3 key
-
-  @Column()
-  @Expose()
-  mimeType: string;
-
-  @Column('bigint')
-  @Expose()
-  size: number;
+  userId: string;
 
   @Column()
   @Expose()
@@ -53,18 +46,25 @@ export class File implements IFileEntity {
   @Expose()
   s3Key: string;
 
-  @Column({ nullable: true })
-  @Expose()
-  thumbnailUrl?: string;
-
   @ManyToOne(() => User, (user) => user.files)
   @JoinColumn({ name: 'userId' })
   @Expose()
   user?: User;
 
+  @Column('decimal', { precision: 10, scale: 2 })
+  @Expose()
+  size: number; // in Megabytes
+
   @Column()
   @Expose()
-  userId: string;
+  name: string;
+
+  @Column({
+    type: 'enum',
+    enum: FileExtensionType,
+  })
+  @Expose()
+  extensionType: FileExtensionType;
 
   @CreateDateColumn()
   @Expose()
