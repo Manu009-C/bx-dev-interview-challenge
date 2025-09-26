@@ -18,10 +18,21 @@ describe('JwtAuthGuard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    const mockRequest = {
+      method: 'GET',
+      url: '/test',
+      headers: {},
+    };
+
+    const mockHttpContext = {
+      getRequest: jest.fn().mockReturnValue(mockRequest),
+      getResponse: jest.fn(),
+    };
+
     mockContext = {
       getHandler: jest.fn(),
       getClass: jest.fn(),
-      switchToHttp: jest.fn(),
+      switchToHttp: jest.fn().mockReturnValue(mockHttpContext),
     } as Mocked<ExecutionContext>;
   });
 

@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { FilesService } from './files.service';
 import { S3Service } from './s3.service';
 import { UserService } from './user.service';
-import { File } from '../entities/file.entity';
+import { File, FileExtensionType } from '../entities/file.entity';
 import { User } from '../entities/user.entity';
 import { Mapper } from '../utils/mapper/mapper';
 import {
@@ -36,14 +36,12 @@ describe('FilesService', () => {
 
   const mockFile = {
     id: 'file-123',
-    originalName: 'test.pdf',
-    fileName: 's3-key-123',
-    mimeType: 'application/pdf',
-    size: 1024,
-    s3Bucket: 'test-bucket',
+    name: 'test.pdf',
     s3Key: 'users/user-123/uuid-test.pdf',
+    s3Bucket: 'test-bucket',
+    extensionType: 'PDF',
+    size: 1024,
     userId: 'user-123',
-    uploadedAt: new Date(),
   } as File;
 
   const mockMulterFile = {
@@ -74,9 +72,8 @@ describe('FilesService', () => {
       const s3Key = 'users/user-123/uuid-test.pdf';
       const fileDto = new FileDto({
         id: 'file-123',
-        originalName: 'test.pdf',
-        fileName: 's3-key-123',
-        mimeType: 'application/pdf',
+        name: 'test.pdf',
+        extensionType: FileExtensionType.PDF,
         size: 1024,
         s3Bucket: 'test-bucket',
         s3Key: 'users/user-123/uuid-test.pdf',
@@ -102,10 +99,11 @@ describe('FilesService', () => {
       );
       expect(fileRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
-          originalName: 'test.pdf',
-          fileName: s3Key,
-          mimeType: 'application/pdf',
-          size: 1024,
+          name: 'test.pdf',
+          s3Key: s3Key,
+          s3Bucket: 'bonusx-bucket',
+          extensionType: 'PDF',
+          size: 0, // 1024 bytes = 0.001 MB, rounded to 0
           userId: 'user-123',
         }),
       );
@@ -135,9 +133,8 @@ describe('FilesService', () => {
       const fileDtos = [
         new FileDto({
           id: 'file-123',
-          originalName: 'test.pdf',
-          fileName: 's3-key-123',
-          mimeType: 'application/pdf',
+          name: 'test.pdf',
+          extensionType: FileExtensionType.PDF,
           size: 1024,
           s3Bucket: 'test-bucket',
           s3Key: 'users/user-123/uuid-test.pdf',
@@ -168,9 +165,8 @@ describe('FilesService', () => {
     it('should return file by id', async () => {
       const fileDto = new FileDto({
         id: 'file-123',
-        originalName: 'test.pdf',
-        fileName: 's3-key-123',
-        mimeType: 'application/pdf',
+        name: 'test.pdf',
+        extensionType: FileExtensionType.PDF,
         size: 1024,
         s3Bucket: 'test-bucket',
         s3Key: 'users/user-123/uuid-test.pdf',
@@ -283,9 +279,8 @@ describe('FilesService', () => {
     it('should return file metadata', async () => {
       const fileDto = new FileDto({
         id: 'file-123',
-        originalName: 'test.pdf',
-        fileName: 's3-key-123',
-        mimeType: 'application/pdf',
+        name: 'test.pdf',
+        extensionType: FileExtensionType.PDF,
         size: 1024,
         s3Bucket: 'test-bucket',
         s3Key: 'users/user-123/uuid-test.pdf',

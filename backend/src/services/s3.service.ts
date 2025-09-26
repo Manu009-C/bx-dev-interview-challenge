@@ -53,13 +53,6 @@ export class S3Service {
     });
 
     this.bucketName = s3Config.bucketName;
-
-    // Log bucket configuration for development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`🪣 S3 Bucket configured: ${this.bucketName}`);
-      console.log(`🔗 MinIO Console: http://localhost:9001`);
-      console.log(`💡 Login: NINJA_ACCESS_KEY / NINJA_SECRET_KEY`);
-    }
   }
 
   async checkBucketExists(): Promise<boolean> {
@@ -71,10 +64,8 @@ export class S3Service {
         (bucket) => bucket.Name === this.bucketName,
       );
       return bucketExists || false;
-    } catch (error) {
-      console.warn(
-        `Failed to check bucket existence: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+    } catch {
+      // TODO: Handle/Log error
       return false;
     }
   }

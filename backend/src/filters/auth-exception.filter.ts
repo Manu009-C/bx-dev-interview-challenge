@@ -20,17 +20,6 @@ export class AuthExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const status = exception.getStatus();
     const request = ctx.getRequest<Request>();
-
-    this.logger.error(
-      `🚫 Auth exception caught: ${status} ${exception.message}`,
-    );
-    this.logger.error(`📍 Request: ${request.method} ${request.url}`);
-    this.logger.error(`🔍 Exception details:`, {
-      name: exception.name,
-      message: exception.message,
-      stack: exception.stack?.split('\n')[0], // Just first line of stack
-    });
-
     const errorResponse = {
       statusCode: status,
       timestamp: new Date().toISOString(),
@@ -39,7 +28,6 @@ export class AuthExceptionFilter implements ExceptionFilter {
       error: status === 401 ? 'Unauthorized' : 'Forbidden',
     };
 
-    this.logger.error(`📤 Sending error response:`, errorResponse);
     response.status(status).json(errorResponse);
   }
 }
